@@ -1,0 +1,312 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/garden_provider.dart';
+import '../providers/user_provider.dart';
+import 'garden_screen.dart';
+
+class ExploreScreen extends StatelessWidget {
+  const ExploreScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              const Color(0xFF1A1A2E),
+              const Color(0xFF16213E),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // 顶部导航
+              _buildTopBar(context),
+              
+              const SizedBox(height: 24),
+              
+              // Quote 卡片
+              Expanded(
+                child: _buildQuoteCard(context),
+              ),
+              
+              // 操作按钮
+              _buildActionButtons(context),
+              
+              const SizedBox(height: 32),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildTopBar(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: const Icon(
+              Icons.arrow_back_ios,
+              color: Color(0xFFE8D5B7),
+            ),
+          ),
+          const Text(
+            'Explore',
+            style: TextStyle(
+              fontSize: 18,
+              color: Color(0xFFF5F5F5),
+              letterSpacing: 2,
+            ),
+          ),
+          const SizedBox(width: 24),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildQuoteCard(BuildContext context) {
+    final gardenProvider = Provider.of<GardenProvider>(context);
+    final quote = gardenProvider.currentQuote;
+    final isFlipped = gardenProvider.isFlipped;
+    
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: GestureDetector(
+        onTap: () => gardenProvider.flipCard(),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeInOut,
+          transform: Matrix4.identity()
+            ..setEntry(3, 2, 0.001)
+            ..rotateY(isFlipped ? 3.14159 : 0),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  const Color(0xFF9B8FD4).withOpacity(0.15),
+                  const Color(0xFF7B68EE).withOpacity(0.1),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: const Color(0xFF9B8FD4).withOpacity(0.2),
+                width: 1,
+              ),
+            ),
+            child: isFlipped
+                ? _buildBackContent(quote)
+                : _buildFrontContent(quote),
+          ),
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildFrontContent(dynamic quote) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Spacer(),
+        Text(
+          '"${quote.text}"',
+          style: const TextStyle(
+            fontSize: 22,
+            height: 1.6,
+            color: Color(0xFFF5F5F5),
+            fontStyle: FontStyle.italic,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 24),
+        Text(
+          '— ${quote.source}',
+          style: TextStyle(
+            fontSize: 14,
+            color: const Color(0xFFE8D5B7).withOpacity(0.7),
+          ),
+        ),
+        const Spacer(),
+        Text(
+          'Tap to reveal tags',
+          style: TextStyle(
+            fontSize: 12,
+            color: const Color(0xFF9B8FD4).withOpacity(0.6),
+            fontFamily: 'Inter',
+          ),
+        ),
+      ],
+    );
+  }
+  
+  Widget _buildBackContent(dynamic quote) {
+    return Transform(
+      transform: Matrix4.identity()..rotateY(3.14159),
+      alignment: Alignment.center,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Attributes',
+            style: TextStyle(
+              fontSize: 12,
+              color: Color(0xFF9B8FD4),
+              letterSpacing: 2,
+              fontFamily: 'Inter',
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: quote.attributes.map((attr) => _buildTag(attr, true)).toList(),
+          ),
+          const SizedBox(height: 32),
+          const Text(
+            'Scent Notes',
+            style: TextStyle(
+              fontSize: 12,
+              color: Color(0xFF9B8FD4),
+              letterSpacing: 2,
+              fontFamily: 'Inter',
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: quote.scents.map((scent) => _buildTag(scent, false)).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildTag(String text, bool isAttribute) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: isAttribute
+            ? const Color(0xFF7DD3C0).withOpacity(0.2)
+            : const Color(0xFFE8D5B7).withOpacity(0.15),
+        border: Border.all(
+          color: isAttribute
+              ? const Color(0xFF7DD3C0).withOpacity(0.3)
+              : const Color(0xFFE8D5B7).withOpacity(0.3),
+        ),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 12,
+          color: isAttribute
+              ? const Color(0xFF7DD3C0)
+              : const Color(0xFFE8D5B7),
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildActionButtons(BuildContext context) {
+    final gardenProvider = Provider.of<GardenProvider>(context);
+    final userProvider = Provider.of<UserProvider>(context);
+    final quote = gardenProvider.currentQuote;
+    final isFav = userProvider.favorites.contains(quote.id);
+    
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 48),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          // Skip
+          _buildCircleButton(
+            icon: Icons.close,
+            onTap: () {
+              gardenProvider.nextQuote();
+              gardenProvider.resetFlip();
+            },
+          ),
+          
+          // Like (+XP)
+          _buildCircleButton(
+            icon: Icons.favorite,
+            color: const Color(0xFFFF6B6B),
+            onTap: () {
+              userProvider.addXp(5);
+              for (final attr in quote.attributes) {
+                userProvider.addAttribute(attr);
+              }
+              for (final scent in quote.scents) {
+                userProvider.addScentScore(scent, 1);
+              }
+              gardenProvider.nextQuote();
+              gardenProvider.resetFlip();
+            },
+            size: 72,
+          ),
+          
+          // Save
+          _buildCircleButton(
+            icon: isFav ? Icons.bookmark : Icons.bookmark_border,
+            color: const Color(0xFFE8D5B7),
+            onTap: () {
+              userProvider.toggleFavorite(quote.id);
+              if (!isFav) {
+                userProvider.addXp(8);
+                for (final scent in quote.scents) {
+                  userProvider.addScentScore(scent, 2);
+                }
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildCircleButton({
+    required IconData icon,
+    required VoidCallback onTap,
+    Color? color,
+    double size = 56,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            colors: [
+              (color ?? const Color(0xFF9B8FD4)).withOpacity(0.3),
+              (color ?? const Color(0xFF7B68EE)).withOpacity(0.2),
+            ],
+          ),
+          border: Border.all(
+            color: (color ?? const Color(0xFF9B8FD4)).withOpacity(0.4),
+            width: 1,
+          ),
+        ),
+        child: Icon(
+          icon,
+          color: color ?? const Color(0xFFF5F5F5),
+          size: size * 0.4,
+        ),
+      ),
+    );
+  }
+}
