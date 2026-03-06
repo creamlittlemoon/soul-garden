@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
+import 'saved_quotes_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -81,9 +82,9 @@ class ProfileScreen extends StatelessWidget {
   
   Widget _buildScentIdentityCard(UserProvider userProvider) {
     final scentName = userProvider.getScentIdentity();
-    final topScents = userProvider.scentScores.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value))
-      ..take(3);
+    final List<MapEntry<String, int>> topScents = userProvider.scentScores.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final displayScents = topScents.take(3).toList();
     
     return Padding(
       padding: const EdgeInsets.all(24.0),
@@ -125,33 +126,57 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            if (topScents.isNotEmpty) ...[
+            if (displayScents.isNotEmpty) ...[
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 alignment: WrapAlignment.center,
-                children: topScents.map((e) => Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    color: const Color(0xFFE8D5B7).withOpacity(0.15),
-                    border: Border.all(
-                      color: const Color(0xFFE8D5B7).withOpacity(0.3),
-                    ),
+                children: [
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    alignment: WrapAlignment.center,
+                    children: displayScents
+                        .map((e) => Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                color: const Color(0xFFE8D5B7)
+                                    .withOpacity(0.15),
+                                border: Border.all(
+                                  color: const Color(0xFFE8D5B7)
+                                      .withOpacity(0.3),
+                                ),
+                              ),
+                              child: Text(
+                                e.key,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFFE8D5B7),
+                                ),
+                              ),
+                            ))
+                        .toList(),
                   ),
-                  child: Text(
-                    '${e.key} ${e.value}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFFE8D5B7),
-                    ),
-                  ),
-                )).toList(),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                displayScents
+                    .map((e) => '${e.key}: ${e.value}')
+                    .join('   '),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: const Color(0xFFF5F5F5).withOpacity(0.7),
+                  fontFamily: 'Inter',
+                ),
               ),
               const SizedBox(height: 16),
             ],
             Text(
-              'A unique blend of your inner journey',
+              _buildScentDescription(scentName),
               style: TextStyle(
                 fontSize: 13,
                 color: const Color(0xFFF5F5F5).withOpacity(0.6),
@@ -235,50 +260,78 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildFavoritesSection(UserProvider userProvider) {
     return Padding(
       padding: const EdgeInsets.all(24.0),
-      child: GestureDetector(
-        onTap: () {
-          // 导航到收藏列表
-        },
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            color: const Color(0xFF9B8FD4).withOpacity(0.1),
-            border: Border.all(
-              color: const Color(0xFF9B8FD4).withOpacity(0.2),
+      child: Builder(
+        builder: (context) => GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const SavedQuotesScreen(),
+              ),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              color: const Color(0xFF9B8FD4).withOpacity(0.1),
+              border: Border.all(
+                color: const Color(0xFF9B8FD4).withOpacity(0.2),
+              ),
             ),
-          ),
-          child: Row(
-            children: [
-              const Icon(
-                Icons.bookmark,
-                color: Color(0xFF9B8FD4),
-              ),
-              const SizedBox(width: 16),
-              const Expanded(
-                child: Text(
-                  'Saved Quotes',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Color(0xFFF5F5F5),
-                  ),
-                ),
-              ),
-              Text(
-                '${userProvider.favorites.length}',
-                style: const TextStyle(
-                  fontSize: 16,
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.bookmark,
                   color: Color(0xFF9B8FD4),
                 ),
-              ),
-              const Icon(
-                Icons.chevron_right,
-                color: Color(0xFF9B8FD4),
-              ),
-            ],
+                const SizedBox(width: 16),
+                const Expanded(
+                  child: Text(
+                    'Saved Quotes',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Color(0xFFF5F5F5),
+                    ),
+                  ),
+                ),
+                Text(
+                  '${userProvider.favorites.length}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Color(0xFF9B8FD4),
+                  ),
+                ),
+                const Icon(
+                  Icons.chevron_right,
+                  color: Color(0xFF9B8FD4),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  String _buildScentDescription(String scentName) {
+    switch (scentName) {
+      case 'Forest Rain':
+        return 'Grounded, rain-soaked calm that lingers quietly around you.';
+      case 'Quiet Amber':
+        return 'Warm, introspective light that glows softly at the edges.';
+      case 'Moonlit Linen':
+        return 'Clean, tender clarity, like sheets drying under moonlight.';
+      case 'Garden Whisper':
+        return 'Soft, floral curiosity that leans toward small joys.';
+      case 'Sea Mist':
+        return 'Open horizons, salt-bright courage, and easy breath.';
+      case 'Temple Shadows':
+        return 'Incense-thick reflection, a mind that loves depth.';
+      case 'Mystery Seed':
+        return 'Your scent story is still a seed, waiting to be watered.';
+      default:
+        return 'A unique blend of your inner journey, still unfolding.';
+    }
   }
 }

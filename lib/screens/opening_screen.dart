@@ -80,6 +80,18 @@ class OpeningScreen extends StatelessWidget {
                       ),
                     ),
                     
+                    const SizedBox(height: 8),
+                    
+                    Text(
+                      'A line to water your inner garden today',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: const Color(0xFFF5F5F5).withOpacity(0.7),
+                        height: 1.4,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    
                     const SizedBox(height: 24),
                     
                     // Quote 文本
@@ -164,7 +176,9 @@ class OpeningScreen extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Save for later',
+                            userProvider.favorites.contains(quote.id)
+                                ? 'Saved to your garden'
+                                : 'Save for later',
                             style: TextStyle(
                               color: const Color(0xFFE8D5B7).withOpacity(0.8),
                               fontSize: 14,

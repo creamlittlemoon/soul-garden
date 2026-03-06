@@ -9,6 +9,9 @@ class ExploreScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gardenProvider = Provider.of<GardenProvider>(context);
+    final hasCompletedLoop = gardenProvider.hasCompletedLoop;
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -29,13 +32,15 @@ class ExploreScreen extends StatelessWidget {
               
               const SizedBox(height: 24),
               
-              // Quote 卡片
+              // Quote 卡片或完成状态
               Expanded(
-                child: _buildQuoteCard(context),
+                child: hasCompletedLoop
+                    ? _buildCompletionState(context)
+                    : _buildQuoteCard(context),
               ),
               
-              // 操作按钮
-              _buildActionButtons(context),
+              // 操作按钮（完成状态下不显示）
+              if (!hasCompletedLoop) _buildActionButtons(context),
               
               const SizedBox(height: 32),
             ],
@@ -72,10 +77,123 @@ class ExploreScreen extends StatelessWidget {
     );
   }
   
+  Widget _buildCompletionState(BuildContext context) {
+    final gardenProvider = Provider.of<GardenProvider>(context, listen: false);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFF9B8FD4).withOpacity(0.15),
+              const Color(0xFF7B68EE).withOpacity(0.1),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: const Color(0xFF9B8FD4).withOpacity(0.25),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Today’s exploration feels complete',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 20,
+                color: Color(0xFFF5F5F5),
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Let your garden breathe. You can always return to wander again.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                color: const Color(0xFFF5F5F5).withOpacity(0.7),
+              ),
+            ),
+            const SizedBox(height: 32),
+            GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(
+                    color: const Color(0xFFE8D5B7).withOpacity(0.4),
+                  ),
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFFE8D5B7).withOpacity(0.25),
+                      const Color(0xFF9B8FD4).withOpacity(0.2),
+                    ],
+                  ),
+                ),
+                child: const Text(
+                  'Return to Garden',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Color(0xFFF5F5F5),
+                    letterSpacing: 1.5,
+                    fontFamily: 'Inter',
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () {
+                gardenProvider.resetSession();
+              },
+              child: Text(
+                'Continue exploring',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: const Color(0xFF9B8FD4).withOpacity(0.9),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
   Widget _buildQuoteCard(BuildContext context) {
     final gardenProvider = Provider.of<GardenProvider>(context);
     final quote = gardenProvider.currentQuote;
     final isFlipped = gardenProvider.isFlipped;
+
+    final hasCalm = quote.attributes.contains('calm');
+    final hasCourage = quote.attributes.contains('courage');
+    final hasClarity = quote.attributes.contains('clarity');
+
+    Color baseStart = const Color(0xFF9B8FD4);
+    Color baseEnd = const Color(0xFF7B68EE);
+    Color tint;
+    if (hasCalm) {
+      tint = const Color(0xFF7DD3C0);
+    } else if (hasCourage) {
+      tint = const Color(0xFFF4A261);
+    } else if (hasClarity) {
+      tint = const Color(0xFF9B8FD4);
+    } else {
+      tint = const Color(0xFF9B8FD4);
+    }
+
+    final startColor = Color.lerp(baseStart, tint, 0.3)!.withOpacity(0.18);
+    final endColor = Color.lerp(baseEnd, tint, 0.2)!.withOpacity(0.12);
     
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -95,8 +213,8 @@ class ExploreScreen extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  const Color(0xFF9B8FD4).withOpacity(0.15),
-                  const Color(0xFF7B68EE).withOpacity(0.1),
+                  startColor,
+                  endColor,
                 ],
               ),
               borderRadius: BorderRadius.circular(24),
@@ -104,6 +222,21 @@ class ExploreScreen extends StatelessWidget {
                 color: const Color(0xFF9B8FD4).withOpacity(0.2),
                 width: 1,
               ),
+              boxShadow: isFlipped
+                  ? [
+                      BoxShadow(
+                        color: const Color(0xFF9B8FD4).withOpacity(0.4),
+                        blurRadius: 18,
+                        spreadRadius: 2,
+                      ),
+                    ]
+                  : [
+                      BoxShadow(
+                        color: const Color(0xFF9B8FD4).withOpacity(0.15),
+                        blurRadius: 10,
+                        spreadRadius: 1,
+                      ),
+                    ],
             ),
             child: isFlipped
                 ? _buildBackContent(quote)
@@ -119,6 +252,31 @@ class ExploreScreen extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const Spacer(),
+        if (quote.isOriginal) ...[
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                color: const Color(0xFFE8D5B7).withOpacity(0.16),
+                border: Border.all(
+                  color: const Color(0xFFE8D5B7).withOpacity(0.4),
+                ),
+              ),
+              child: const Text(
+                'Original',
+                style: TextStyle(
+                  fontSize: 11,
+                  letterSpacing: 1.2,
+                  color: Color(0xFFE8D5B7),
+                  fontFamily: 'Inter',
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
         Text(
           '"${quote.text}"',
           style: const TextStyle(
@@ -173,6 +331,16 @@ class ExploreScreen extends StatelessWidget {
             runSpacing: 8,
             children: quote.attributes.map((attr) => _buildTag(attr, true)).toList(),
           ),
+          const SizedBox(height: 12),
+          if (quote.attributes.isNotEmpty)
+            Text(
+              _buildAttributeImpactText(quote.attributes),
+              style: TextStyle(
+                fontSize: 11,
+                color: const Color(0xFFF5F5F5).withOpacity(0.7),
+                fontFamily: 'Inter',
+              ),
+            ),
           const SizedBox(height: 32),
           const Text(
             'Scent Notes',
@@ -192,6 +360,24 @@ class ExploreScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _buildAttributeImpactText(List<String> attributes) {
+    final Map<String, int> counts = {};
+    for (final attr in attributes) {
+      counts[attr] = (counts[attr] ?? 0) + 1;
+    }
+
+    String titleCase(String key) {
+      if (key.isEmpty) return key;
+      return key[0].toUpperCase() + key.substring(1);
+    }
+
+    final parts = counts.entries
+        .map((e) => '${titleCase(e.key)} +${e.value}')
+        .toList();
+
+    return parts.join(' • ');
   }
   
   Widget _buildTag(String text, bool isAttribute) {
@@ -230,10 +416,13 @@ class ExploreScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 48),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           // Skip
-          _buildCircleButton(
+          _buildLabeledCircleButton(
             icon: Icons.close,
+            label: 'Skip',
+            subtitle: 'See another line',
             onTap: () {
               gardenProvider.nextQuote();
               gardenProvider.resetFlip();
@@ -241,9 +430,12 @@ class ExploreScreen extends StatelessWidget {
           ),
           
           // Like (+XP)
-          _buildCircleButton(
+          _buildLabeledCircleButton(
             icon: Icons.favorite,
             color: const Color(0xFFFF6B6B),
+            size: 72,
+            label: 'Like',
+            subtitle: '+5 XP • grow tree',
             onTap: () {
               userProvider.addXp(5);
               for (final attr in quote.attributes) {
@@ -255,13 +447,14 @@ class ExploreScreen extends StatelessWidget {
               gardenProvider.nextQuote();
               gardenProvider.resetFlip();
             },
-            size: 72,
           ),
           
           // Save
-          _buildCircleButton(
+          _buildLabeledCircleButton(
             icon: isFav ? Icons.bookmark : Icons.bookmark_border,
             color: const Color(0xFFE8D5B7),
+            label: isFav ? 'Saved' : 'Save',
+            subtitle: isFav ? 'In your garden' : '+8 XP • scent boost',
             onTap: () {
               userProvider.toggleFavorite(quote.id);
               if (!isFav) {
@@ -277,36 +470,62 @@ class ExploreScreen extends StatelessWidget {
     );
   }
   
-  Widget _buildCircleButton({
+  Widget _buildLabeledCircleButton({
     required IconData icon,
     required VoidCallback onTap,
+    required String label,
+    required String subtitle,
     Color? color,
     double size = 56,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: LinearGradient(
-            colors: [
-              (color ?? const Color(0xFF9B8FD4)).withOpacity(0.3),
-              (color ?? const Color(0xFF7B68EE)).withOpacity(0.2),
-            ],
-          ),
-          border: Border.all(
-            color: (color ?? const Color(0xFF9B8FD4)).withOpacity(0.4),
-            width: 1,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [
+                  (color ?? const Color(0xFF9B8FD4)).withOpacity(0.3),
+                  (color ?? const Color(0xFF7B68EE)).withOpacity(0.2),
+                ],
+              ),
+              border: Border.all(
+                color: (color ?? const Color(0xFF9B8FD4)).withOpacity(0.4),
+                width: 1,
+              ),
+            ),
+            child: Icon(
+              icon,
+              color: color ?? const Color(0xFFF5F5F5),
+              size: size * 0.4,
+            ),
           ),
         ),
-        child: Icon(
-          icon,
-          color: color ?? const Color(0xFFF5F5F5),
-          size: size * 0.4,
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            color: Color(0xFFF5F5F5),
+            fontFamily: 'Inter',
+          ),
         ),
-      ),
+        const SizedBox(height: 4),
+        Text(
+          subtitle,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 10,
+            color: const Color(0xFFF5F5F5).withOpacity(0.65),
+            fontFamily: 'Inter',
+          ),
+        ),
+      ],
     );
   }
 }

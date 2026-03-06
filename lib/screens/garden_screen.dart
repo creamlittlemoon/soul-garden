@@ -40,7 +40,12 @@ class GardenScreen extends StatelessWidget {
                   const Spacer(),
                   
                   // 树苗（呼吸动效）
-                  const TreeWidget(),
+                  _buildTreeWithGlow(userProvider),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // 成长阶段标签
+                  _buildStageLabel(userProvider),
                   
                   const SizedBox(height: 32),
                   
@@ -80,6 +85,19 @@ class GardenScreen extends StatelessWidget {
                       color: const Color(0xFFE8D5B7).withOpacity(0.6),
                       fontFamily: 'Inter',
                     ),
+                  ),
+                  
+                  const SizedBox(height: 8),
+                  
+                  // 轻量状态汇总
+                  Text(
+                    'Saved quotes: ${userProvider.favorites.length} • Today’s scent: ${userProvider.getScentIdentity()}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: const Color(0xFFF5F5F5).withOpacity(0.65),
+                      fontFamily: 'Inter',
+                    ),
+                    textAlign: TextAlign.center,
                   ),
                   
                   const Spacer(),
@@ -144,6 +162,89 @@ class GardenScreen extends StatelessWidget {
     );
   }
   
+  Widget _buildTreeWithGlow(UserProvider userProvider) {
+    final isNearGrowth = userProvider.xpToNextLevel > 0 && userProvider.xpToNextLevel <= 10;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 800),
+      curve: Curves.easeInOut,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        boxShadow: isNearGrowth
+            ? [
+                BoxShadow(
+                  color: const Color(0xFFE8D5B7).withOpacity(0.45),
+                  blurRadius: 28,
+                  spreadRadius: 4,
+                ),
+              ]
+            : [
+                BoxShadow(
+                  color: const Color(0xFF9B8FD4).withOpacity(0.25),
+                  blurRadius: 18,
+                  spreadRadius: 2,
+                ),
+              ],
+      ),
+      child: const TreeWidget(),
+    );
+  }
+
+  Widget _buildStageLabel(UserProvider userProvider) {
+    final stageKey = userProvider.treeStage;
+    String stageName;
+    String description;
+
+    switch (stageKey) {
+      case 'seed':
+        stageName = 'Seed';
+        description = 'A quiet beginning, held in the dark soil.';
+        break;
+      case 'sprout':
+        stageName = 'Sprout';
+        description = 'New leaves testing the air of your days.';
+        break;
+      case 'young_tree':
+        stageName = 'Young Tree';
+        description = 'Roots reaching deeper as your branches grow.';
+        break;
+      case 'bloom':
+        stageName = 'Bloom';
+        description = 'Petals open to the small joys you notice.';
+        break;
+      case 'forest':
+      default:
+        stageName = 'Forest';
+        description = 'A whole grove grown from the lines you chose.';
+        break;
+    }
+
+    return Column(
+      children: [
+        Text(
+          stageName,
+          style: const TextStyle(
+            fontSize: 16,
+            color: Color(0xFFE8D5B7),
+            letterSpacing: 1.5,
+            fontFamily: 'Inter',
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          description,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 12,
+            height: 1.5,
+            color: const Color(0xFFF5F5F5).withOpacity(0.7),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildTopBar(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
     

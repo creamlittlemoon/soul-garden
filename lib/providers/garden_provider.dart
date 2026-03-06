@@ -82,14 +82,17 @@ class GardenProvider extends ChangeNotifier {
   
   int _currentIndex = 0;
   bool _isFlipped = false;
+  int _seenCount = 0;
   
   List<Quote> get quotes => _quotes;
   Quote get currentQuote => _quotes[_currentIndex];
   bool get isFlipped => _isFlipped;
+  bool get hasCompletedLoop => _seenCount >= _quotes.length && _quotes.isNotEmpty;
   
   Quote get dailyWhisper => _quotes[DateTime.now().day % _quotes.length];
   
   void nextQuote() {
+    _seenCount++;
     _currentIndex = (_currentIndex + 1) % _quotes.length;
     _isFlipped = false;
     notifyListeners();
@@ -108,6 +111,11 @@ class GardenProvider extends ChangeNotifier {
   
   void resetFlip() {
     _isFlipped = false;
+    notifyListeners();
+  }
+
+  void resetSession() {
+    _seenCount = 0;
     notifyListeners();
   }
   
