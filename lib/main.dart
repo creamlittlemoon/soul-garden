@@ -34,7 +34,6 @@ class SoulGardenApp extends StatelessWidget {
         theme: ThemeData(
           useMaterial3: true,
           scaffoldBackgroundColor: const Color(0xFF1A1A2E),
-          fontFamily: 'CormorantGaramond',
           colorScheme: ColorScheme.fromSeed(
             seedColor: const Color(0xFF7B68EE),
             brightness: Brightness.dark,
