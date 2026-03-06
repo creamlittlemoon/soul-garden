@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
+import '../services/audio_service.dart';
 import '../widgets/tree_widget.dart';
 import '../widgets/attribute_bar.dart';
 import '../widgets/mist_layer.dart';
@@ -10,8 +11,25 @@ import '../widgets/today_panel.dart';
 import 'explore_screen.dart';
 import 'profile_screen.dart';
 
-class GardenScreen extends StatelessWidget {
+class GardenScreen extends StatefulWidget {
   const GardenScreen({super.key});
+
+  @override
+  State<GardenScreen> createState() => _GardenScreenState();
+}
+
+class _GardenScreenState extends State<GardenScreen> {
+  @override
+  void initState() {
+    super.initState();
+    AudioService.startAmbient();
+  }
+
+  @override
+  void dispose() {
+    AudioService.stopAmbient();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,6 +117,7 @@ class GardenScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 32),
                     child: GestureDetector(
                       onTap: () {
+                        AudioService.playTap();
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (_) => const ExploreScreen()),
@@ -248,6 +267,7 @@ class GardenScreen extends StatelessWidget {
           // Profile 入口
           GestureDetector(
             onTap: () {
+              AudioService.playTap();
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const ProfileScreen()),

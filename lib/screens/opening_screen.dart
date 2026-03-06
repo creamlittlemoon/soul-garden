@@ -2,10 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/garden_provider.dart';
 import '../providers/user_provider.dart';
+import '../services/audio_service.dart';
 import 'garden_screen.dart';
 
-class OpeningScreen extends StatelessWidget {
+class OpeningScreen extends StatefulWidget {
   const OpeningScreen({super.key});
+
+  @override
+  State<OpeningScreen> createState() => _OpeningScreenState();
+}
+
+class _OpeningScreenState extends State<OpeningScreen> {
+  @override
+  void initState() {
+    super.initState();
+    AudioService.startAmbient();
+  }
+
+  @override
+  void dispose() {
+    AudioService.stopAmbient();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -122,6 +140,8 @@ class OpeningScreen extends StatelessWidget {
                     // Enter Garden 按钮
                     GestureDetector(
                       onTap: () {
+                        AudioService.playTap();
+                        AudioService.stopAmbient();
                         userProvider.updateLastVisit();
                         Navigator.pushReplacement(
                           context,
@@ -162,6 +182,7 @@ class OpeningScreen extends StatelessWidget {
                     // Save 按钮
                     TextButton(
                       onPressed: () {
+                        AudioService.playSave();
                         userProvider.toggleFavorite(quote.id);
                       },
                       child: Row(

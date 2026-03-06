@@ -51,12 +51,9 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  
-  # Assets section removed for MVP - add when you have actual asset files
-  # assets:
-  #   - assets/audio/
-  #   - assets/images/
-  #   - assets/animations/
-  
+
+  assets:
+    - assets/audio/
+
   # Using system fonts for MVP - replace with custom fonts when available
   # To use custom fonts, create assets/fonts/ directory and place font files there

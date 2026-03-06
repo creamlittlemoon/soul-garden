@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/garden_provider.dart';
 import '../providers/user_provider.dart';
+import '../services/audio_service.dart';
 import 'garden_screen.dart';
 
 class ExploreScreen extends StatelessWidget {
@@ -58,7 +59,10 @@ class ExploreScreen extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           GestureDetector(
-            onTap: () => Navigator.pop(context),
+            onTap: () {
+              AudioService.playTap();
+              Navigator.pop(context);
+            },
             child: const Icon(
               Icons.arrow_back_ios,
               color: Color(0xFFE8D5B7),
@@ -124,7 +128,10 @@ class ExploreScreen extends StatelessWidget {
             ),
             const SizedBox(height: 32),
             GestureDetector(
-              onTap: () => Navigator.pop(context),
+              onTap: () {
+                AudioService.playTap();
+                Navigator.pop(context);
+              },
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -155,6 +162,7 @@ class ExploreScreen extends StatelessWidget {
             const SizedBox(height: 12),
             TextButton(
               onPressed: () {
+                AudioService.playTap();
                 gardenProvider.resetSession();
               },
               child: Text(
@@ -201,6 +209,7 @@ class ExploreScreen extends StatelessWidget {
       child: GestureDetector(
         onTap: () {
           HapticFeedback.lightImpact();
+          AudioService.playFlip();
           gardenProvider.flipCard();
         },
         child: AnimatedContainer(
@@ -486,6 +495,7 @@ class ExploreScreen extends StatelessWidget {
             subtitle: 'See another line',
             onTap: () {
               HapticFeedback.selectionClick();
+              AudioService.playTap();
               gardenProvider.nextQuote();
               gardenProvider.resetFlip();
             },
@@ -500,12 +510,17 @@ class ExploreScreen extends StatelessWidget {
             subtitle: '+5 XP • grow tree',
             onTap: () {
               HapticFeedback.mediumImpact();
+              AudioService.playLike();
+              final stageBefore = userProvider.treeStage;
               userProvider.addXp(5);
               for (final attr in quote.attributes) {
                 userProvider.addAttribute(attr);
               }
               for (final scent in quote.scents) {
                 userProvider.addScentScore(scent, 1);
+              }
+              if (userProvider.treeStage != stageBefore) {
+                AudioService.playLevelUp();
               }
               gardenProvider.nextQuote();
               gardenProvider.resetFlip();
@@ -520,11 +535,16 @@ class ExploreScreen extends StatelessWidget {
             subtitle: isFav ? 'In your garden' : '+8 XP • scent boost',
             onTap: () {
               HapticFeedback.selectionClick();
+              AudioService.playSave();
+              final stageBefore = userProvider.treeStage;
               userProvider.toggleFavorite(quote.id);
               if (!isFav) {
                 userProvider.addXp(8);
                 for (final scent in quote.scents) {
                   userProvider.addScentScore(scent, 2);
+                }
+                if (userProvider.treeStage != stageBefore) {
+                  AudioService.playLevelUp();
                 }
               }
             },
