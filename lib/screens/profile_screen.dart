@@ -35,7 +35,12 @@ class ProfileScreen extends StatelessWidget {
               SliverToBoxAdapter(
                 child: _buildScentIdentityCard(userProvider),
               ),
-              
+
+              // Shareable identity card (screenshot-friendly)
+              SliverToBoxAdapter(
+                child: _buildShareableIdentityCard(userProvider),
+              ),
+
               // 属性趋势
               SliverToBoxAdapter(
                 child: _buildAttributesSection(userProvider),
@@ -189,7 +194,139 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
-  
+
+  Widget _buildShareableIdentityCard(UserProvider userProvider) {
+    final scentName = userProvider.getScentIdentity();
+    final List<MapEntry<String, int>> topScents =
+        userProvider.scentScores.entries.toList()
+          ..sort((a, b) => b.value.compareTo(a.value));
+    final topNoteNames = topScents.take(3).map((e) => e.key).toList();
+    final poeticLine = _buildScentDescription(scentName);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Column(
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(bottom: 12),
+            child: Text(
+              'Your shareable card',
+              style: TextStyle(
+                fontSize: 12,
+                color: Color(0xFF9B8FD4),
+                letterSpacing: 2,
+              ),
+            ),
+          ),
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 300),
+              child: AspectRatio(
+                aspectRatio: 9 / 16,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 32,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        const Color(0xFF1A1A2E),
+                        const Color(0xFF16213E),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: const Color(0xFFE8D5B7).withOpacity(0.25),
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        scentName,
+                        style: const TextStyle(
+                          fontSize: 26,
+                          color: Color(0xFFE8D5B7),
+                          fontWeight: FontWeight.w600,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 20),
+                      if (topNoteNames.isNotEmpty)
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          alignment: WrapAlignment.center,
+                          children: topNoteNames
+                              .map(
+                                (note) => Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(16),
+                                    color: const Color(0xFFE8D5B7)
+                                        .withOpacity(0.15),
+                                    border: Border.all(
+                                      color: const Color(0xFFE8D5B7)
+                                          .withOpacity(0.3),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    note,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Color(0xFFE8D5B7),
+                                    ),
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                        ),
+                      if (topNoteNames.isNotEmpty) const SizedBox(height: 24),
+                      Text(
+                        poeticLine,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: const Color(0xFFF5F5F5).withOpacity(0.85),
+                          fontStyle: FontStyle.italic,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const Spacer(),
+                      Text(
+                        'Soul Garden',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: const Color(0xFF9B8FD4).withOpacity(0.6),
+                          letterSpacing: 1,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Screenshot to share',
+            style: TextStyle(
+              fontSize: 11,
+              color: const Color(0xFFF5F5F5).withOpacity(0.5),
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
   Widget _buildAttributesSection(UserProvider userProvider) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
