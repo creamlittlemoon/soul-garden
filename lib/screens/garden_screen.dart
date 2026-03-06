@@ -3,6 +3,10 @@ import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
 import '../widgets/tree_widget.dart';
 import '../widgets/attribute_bar.dart';
+import '../widgets/mist_layer.dart';
+import '../widgets/moon_glow_layer.dart';
+import '../widgets/floating_leaves_layer.dart';
+import '../widgets/today_panel.dart';
 import 'explore_screen.dart';
 import 'profile_screen.dart';
 
@@ -29,9 +33,12 @@ class GardenScreen extends StatelessWidget {
         child: SafeArea(
           child: Stack(
             children: [
-              // 背景粒子
-              _buildBackgroundParticles(),
-              
+              // Layered ambience (back to front)
+              _buildMistLayer(userProvider.treeStage),
+              _buildMoonGlow(userProvider.treeStage),
+              _buildBackgroundParticles(userProvider.treeStage),
+              FloatingLeavesLayer(stage: userProvider.treeStage),
+
               Column(
                 children: [
                   // 顶部导航
@@ -75,29 +82,14 @@ class GardenScreen extends StatelessWidget {
                     ),
                   ),
                   
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
                   
-                  // XP 进度
-                  Text(
-                    '${userProvider.xpToNextLevel} XP to next growth',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: const Color(0xFFE8D5B7).withOpacity(0.6),
-                      fontFamily: 'Inter',
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 8),
-                  
-                  // 轻量状态汇总
-                  Text(
-                    'Saved quotes: ${userProvider.favorites.length} • Today’s scent: ${userProvider.getScentIdentity()}',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: const Color(0xFFF5F5F5).withOpacity(0.65),
-                      fontFamily: 'Inter',
-                    ),
-                    textAlign: TextAlign.center,
+                  // Today panel
+                  TodayPanel(
+                    scentIdentity: userProvider.getScentIdentity(),
+                    xpToNextLevel: userProvider.xpToNextLevel,
+                    favoritesCount: userProvider.favorites.length,
+                    showDailyWhisper: userProvider.shouldShowDailyWhisper,
                   ),
                   
                   const Spacer(),
@@ -298,15 +290,36 @@ class GardenScreen extends StatelessWidget {
     );
   }
   
-  Widget _buildBackgroundParticles() {
+  Widget _buildMistLayer(String stage) {
+    final isEarly = stage == 'seed' || stage == 'sprout';
+    return MistLayer(
+      opacity: isEarly ? 0.45 : 0.3,
+      heightFraction: isEarly ? 0.55 : 0.45,
+    );
+  }
+
+  Widget _buildMoonGlow(String stage) {
+    final isLate = stage == 'bloom' || stage == 'forest';
+    return MoonGlowLayer(
+      opacity: isLate ? 0.32 : 0.22,
+      topOffset: 0.08,
+      rightOffset: 0.18,
+      radiusScale: isLate ? 1.15 : 1.0,
+    );
+  }
+
+  Widget _buildBackgroundParticles(String stage) {
+    final count = stage == 'seed' || stage == 'sprout' ? 8 : 15;
+    final isWarm = stage == 'bloom' || stage == 'forest';
     return Positioned.fill(
       child: IgnorePointer(
         child: Stack(
           children: List.generate(
-            15,
+            count,
             (index) => _FloatingParticle(
               delay: index * 0.8,
               x: (index % 4) / 4 + 0.1,
+              warmTint: isWarm,
             ),
           ),
         ),
@@ -318,8 +331,13 @@ class GardenScreen extends StatelessWidget {
 class _FloatingParticle extends StatefulWidget {
   final double delay;
   final double x;
-  
-  const _FloatingParticle({required this.delay, required this.x});
+  final bool warmTint;
+
+  const _FloatingParticle({
+    required this.delay,
+    required this.x,
+    this.warmTint = false,
+  });
   
   @override
   State<_FloatingParticle> createState() => _FloatingParticleState();
@@ -366,11 +384,16 @@ class _FloatingParticleState extends State<_FloatingParticle>
               width: 4,
               height: 4,
               decoration: BoxDecoration(
-                color: const Color(0xFF9B8FD4),
+                color: widget.warmTint
+                    ? const Color(0xFFE8D5B7)
+                    : const Color(0xFF9B8FD4),
                 borderRadius: BorderRadius.circular(2),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF9B8FD4).withOpacity(0.4),
+                    color: (widget.warmTint
+                            ? const Color(0xFFE8D5B7)
+                            : const Color(0xFF9B8FD4))
+                        .withOpacity(0.4),
                     blurRadius: 6,
                   ),
                 ],
