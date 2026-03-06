@@ -198,7 +198,10 @@ class ExploreScreen extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: GestureDetector(
-        onTap: () => gardenProvider.flipCard(),
+        onTap: () {
+          HapticFeedback.lightImpact();
+          gardenProvider.flipCard();
+        },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 400),
           curve: Curves.easeInOut,
@@ -275,8 +278,32 @@ class ExploreScreen extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
         ],
+        // Mood label
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              color: const Color(0xFF9B8FD4).withOpacity(0.12),
+              border: Border.all(
+                color: const Color(0xFF9B8FD4).withOpacity(0.35),
+              ),
+            ),
+            child: Text(
+              quote.mood,
+              style: TextStyle(
+                fontSize: 11,
+                letterSpacing: 1.2,
+                color: const Color(0xFFE8D5B7).withOpacity(0.85),
+                fontFamily: 'Inter',
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
         Text(
           '"${quote.text}"',
           style: const TextStyle(
@@ -295,9 +322,31 @@ class ExploreScreen extends StatelessWidget {
             color: const Color(0xFFE8D5B7).withOpacity(0.7),
           ),
         ),
+        const SizedBox(height: 16),
+        Text(
+          quote.interpretation,
+          style: TextStyle(
+            fontSize: 13,
+            height: 1.5,
+            color: const Color(0xFFF5F5F5).withOpacity(0.72),
+            fontStyle: FontStyle.italic,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 12),
+        Text(
+          _buildWhyResonates(quote),
+          style: TextStyle(
+            fontSize: 11,
+            fontStyle: FontStyle.italic,
+            color: const Color(0xFFE8D5B7).withOpacity(0.55),
+            fontFamily: 'Inter',
+          ),
+          textAlign: TextAlign.center,
+        ),
         const Spacer(),
         Text(
-          'Tap to reveal tags',
+          'Tap to see attributes & scents',
           style: TextStyle(
             fontSize: 12,
             color: const Color(0xFF9B8FD4).withOpacity(0.6),
@@ -306,6 +355,17 @@ class ExploreScreen extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  String _buildWhyResonates(dynamic quote) {
+    final attrPart = quote.attributes
+        .map((a) => a.isEmpty ? a : '${a[0].toUpperCase()}${a.substring(1)}')
+        .join(', ');
+    final scentPart = quote.scents.take(3).join(', ');
+    if (attrPart.isEmpty && scentPart.isEmpty) return '';
+    if (attrPart.isEmpty) return 'Why it resonates · $scentPart';
+    if (scentPart.isEmpty) return 'Why it resonates · $attrPart';
+    return 'Why it resonates · $attrPart · $scentPart';
   }
   
   Widget _buildBackContent(dynamic quote) {
@@ -424,6 +484,7 @@ class ExploreScreen extends StatelessWidget {
             label: 'Skip',
             subtitle: 'See another line',
             onTap: () {
+              HapticFeedback.selectionClick();
               gardenProvider.nextQuote();
               gardenProvider.resetFlip();
             },
@@ -437,6 +498,7 @@ class ExploreScreen extends StatelessWidget {
             label: 'Like',
             subtitle: '+5 XP • grow tree',
             onTap: () {
+              HapticFeedback.mediumImpact();
               userProvider.addXp(5);
               for (final attr in quote.attributes) {
                 userProvider.addAttribute(attr);
@@ -456,6 +518,7 @@ class ExploreScreen extends StatelessWidget {
             label: isFav ? 'Saved' : 'Save',
             subtitle: isFav ? 'In your garden' : '+8 XP • scent boost',
             onTap: () {
+              HapticFeedback.selectionClick();
               userProvider.toggleFavorite(quote.id);
               if (!isFav) {
                 userProvider.addXp(8);
@@ -481,8 +544,9 @@ class ExploreScreen extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        GestureDetector(
+        _TapFeedbackCircle(
           onTap: onTap,
+          size: size,
           child: Container(
             width: size,
             height: size,
@@ -526,6 +590,42 @@ class ExploreScreen extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _TapFeedbackCircle extends StatefulWidget {
+  final VoidCallback onTap;
+  final double size;
+  final Widget child;
+
+  const _TapFeedbackCircle({
+    required this.onTap,
+    required this.size,
+    required this.child,
+  });
+
+  @override
+  State<_TapFeedbackCircle> createState() => _TapFeedbackCircleState();
+}
+
+class _TapFeedbackCircleState extends State<_TapFeedbackCircle> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        scale: _pressed ? 0.95 : 1.0,
+        duration: const Duration(milliseconds: 100),
+        curve: Curves.easeInOut,
+        child: widget.child,
+      ),
     );
   }
 }

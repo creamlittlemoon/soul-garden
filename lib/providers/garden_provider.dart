@@ -8,7 +8,9 @@ class Quote {
   final List<String> attributes;
   final List<String> scents;
   final bool isOriginal;
-  
+  final String interpretation;
+  final String mood;
+
   Quote({
     required this.id,
     required this.text,
@@ -16,6 +18,8 @@ class Quote {
     required this.attributes,
     required this.scents,
     this.isOriginal = false,
+    required this.interpretation,
+    required this.mood,
   });
 }
 
@@ -27,6 +31,8 @@ class GardenProvider extends ChangeNotifier {
       source: 'Ram Dass',
       attributes: ['clarity'],
       scents: ['woody', 'clean', 'powdery'],
+      interpretation: 'Silence isn’t empty—it’s where understanding grows.',
+      mood: 'Clear',
     ),
     Quote(
       id: '2',
@@ -35,6 +41,8 @@ class GardenProvider extends ChangeNotifier {
       attributes: ['calm'],
       scents: ['floral', 'green', 'tea'],
       isOriginal: true,
+      interpretation: 'Presence is the water; your attention, the sun.',
+      mood: 'Gentle',
     ),
     Quote(
       id: '3',
@@ -42,6 +50,8 @@ class GardenProvider extends ChangeNotifier {
       source: 'Nelson Mandela',
       attributes: ['courage'],
       scents: ['amber', 'musk', 'spicy'],
+      interpretation: 'Strength isn’t about never feeling fear; it’s about moving with it.',
+      mood: 'Bold',
     ),
     Quote(
       id: '4',
@@ -49,6 +59,8 @@ class GardenProvider extends ChangeNotifier {
       source: 'Albert Camus',
       attributes: ['courage', 'clarity'],
       scents: ['woody', 'petrichor', 'citrus'],
+      interpretation: 'Even in the coldest season, something in you stays alive and warm.',
+      mood: 'Warm',
     ),
     Quote(
       id: '5',
@@ -56,6 +68,8 @@ class GardenProvider extends ChangeNotifier {
       source: 'Thich Nhat Hanh',
       attributes: ['calm'],
       scents: ['floral', 'sweet', 'herbal'],
+      interpretation: 'Joy lives in the ordinary when we slow down enough to meet it.',
+      mood: 'Gentle',
     ),
     Quote(
       id: '6',
@@ -63,6 +77,8 @@ class GardenProvider extends ChangeNotifier {
       source: 'Rumi',
       attributes: ['clarity'],
       scents: ['incense', 'spicy', 'musk'],
+      interpretation: 'You and what you long for are already moving toward each other.',
+      mood: 'Clear',
     ),
     Quote(
       id: '7',
@@ -70,6 +86,8 @@ class GardenProvider extends ChangeNotifier {
       source: 'Rumi',
       attributes: ['courage', 'calm'],
       scents: ['woody', 'earthy', 'petrichor'],
+      interpretation: 'Letting go of what no longer serves you is its own kind of courage.',
+      mood: 'Grounding',
     ),
     Quote(
       id: '8',
@@ -77,6 +95,8 @@ class GardenProvider extends ChangeNotifier {
       source: 'Buddha',
       attributes: ['calm', 'clarity'],
       scents: ['clean', 'powdery', 'vanilla'],
+      interpretation: 'The peace you want is already here, waiting for your attention.',
+      mood: 'Gentle',
     ),
   ];
   
